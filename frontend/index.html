@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plainbot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E8EDF5;
+    --surface: #FFFFFF;
+    --ink: #14213D;
+    --muted: #5C6B88;
+    --line: #C9D2E3;
+    --blue: #2F4BFF;
+    --blue-dark: #2238CC;
+    --sun: #FFD23F;
+    --green: #17A673;
+    --red: #E5484D;
+    --amber: #F5A524;
+    --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --body: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.5; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  .hidden { display: none !important; }
+
+  /* ---------- buttons & fields (flat: solid fills, no shadows) ---------- */
+  .btn { border: 2px solid var(--ink); background: var(--surface); padding: 10px 18px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: background .12s; }
+  .btn:hover { background: var(--sun); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+  .btn.danger { border-color: var(--red); color: var(--red); }
+  .btn.danger:hover { background: var(--red); color: #fff; }
+  .btn.small { padding: 6px 12px; font-size: 13px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .field { display: block; margin-bottom: 16px; }
+  .field span { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .field input, .field textarea { width: 100%; border: 2px solid var(--line); background: var(--surface); padding: 11px 12px; border-radius: 6px; }
+  .field input:focus, .field textarea:focus { border-color: var(--blue); outline: none; }
+  .field textarea { min-height: 130px; resize: vertical; }
+  .error { background: #FDE8E9; color: #9B1C20; border-left: 6px solid var(--red); padding: 10px 12px; margin-bottom: 16px; font-weight: 500; }
+
+  /* ---------- auth ---------- */
+  #auth { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; }
+  .auth-brand { background: var(--blue); color: #fff; padding: 56px; display: flex; flex-direction: column; justify-content: space-between; }
+  .logo { font-family: var(--display); font-weight: 800; font-size: 26px; display: flex; align-items: center; gap: 10px; }
+  .logo i { width: 26px; height: 26px; background: var(--sun); display: inline-block; border-radius: 50%; }
+  .auth-brand h1 { font-size: clamp(36px, 5vw, 60px); max-width: 12ch; }
+  .auth-brand p { max-width: 38ch; margin-top: 18px; font-size: 17px; opacity: .92; }
+  .sample { background: var(--ink); border-radius: 8px; padding: 18px 20px; font-size: 14px; line-height: 1.6; max-width: 440px; }
+  .sample b { color: var(--sun); font-weight: 700; }
+  .auth-form { background: var(--surface); display: flex; align-items: center; justify-content: center; padding: 40px; }
+  .auth-card { width: 100%; max-width: 380px; }
+  .tabs { display: flex; border: 2px solid var(--ink); border-radius: 6px; overflow: hidden; margin-bottom: 28px; }
+  .tabs button { flex: 1; border: 0; background: var(--surface); padding: 10px; font-weight: 700; cursor: pointer; }
+  .tabs button.on { background: var(--ink); color: #fff; }
+  .auth-card h2 { font-size: 30px; margin-bottom: 6px; }
+  .auth-card .sub { color: var(--muted); margin-bottom: 24px; }
+  .auth-card .btn { width: 100%; padding: 12px; }
+
+  /* ---------- app shell ---------- */
+  #app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  aside { background: var(--ink); color: #fff; padding: 28px 20px; display: flex; flex-direction: column; gap: 28px; position: sticky; top: 0; height: 100vh; }
+  aside .logo { font-size: 24px; }
+  nav a { display: block; padding: 10px 12px; border-radius: 6px; font-weight: 700; color: #fff; text-decoration: none; background: var(--blue); }
+  .who { margin-top: auto; border-top: 2px solid #2A3A60; padding-top: 18px; }
+  .who strong { display: block; }
+  .who small { color: #9FB0D3; word-break: break-all; }
+  .who button { margin-top: 12px; width: 100%; background: transparent; color: #fff; border-color: #5C6B88; }
+  .who button:hover { background: var(--sun); color: var(--ink); border-color: var(--sun); }
+  main { padding: 36px 40px 60px; min-width: 0; }
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .topbar h2 { font-size: 36px; }
+  .topbar p { color: var(--muted); margin-top: 4px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+  .stat { background: var(--surface); border-radius: 8px; padding: 18px 20px; border-left: 8px solid var(--line); }
+  .stat b { font-family: var(--display); font-size: 34px; display: block; line-height: 1; }
+  .stat span { color: var(--muted); font-weight: 500; }
+  .stat.blue { border-color: var(--blue); } .stat.amber { border-color: var(--amber); }
+  .stat.green { border-color: var(--green); } .stat.red { border-color: var(--red); }
+
+  .layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 20px; align-items: start; }
+  .panel { background: var(--surface); border-radius: 8px; padding: 20px; }
+  .panel h3 { font-size: 20px; margin-bottom: 14px; }
+  .job { display: block; width: 100%; text-align: left; background: var(--bg); border: 2px solid transparent; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; }
+  .job:hover { border-color: var(--line); }
+  .job.sel { border-color: var(--blue); background: #EEF1FF; }
+  .job b { display: block; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .job small { color: var(--muted); }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--line); color: var(--ink); margin-right: 8px; }
+  .badge.running { background: var(--amber); } .badge.completed { background: var(--green); color: #fff; }
+  .badge.failed { background: var(--red); color: #fff; } .badge.stopped { background: var(--muted); color: #fff; }
+  .badge.ready { background: var(--sun); }
+
+  .empty { text-align: center; padding: 40px 16px; color: var(--muted); }
+  .empty h3 { color: var(--ink); margin-bottom: 6px; }
+
+  /* detail */
+  .detail-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 6px; }
+  .detail-head h3 { font-size: 26px; margin: 0; }
+  .prompt { background: var(--bg); border-radius: 6px; padding: 12px 14px; margin: 14px 0 18px; border-left: 6px solid var(--sun); white-space: pre-wrap; }
+  .label { font-weight: 700; font-size: 14px; margin: 18px 0 8px; display: block; }
+  .steps { list-style: none; padding: 0; display: grid; gap: 6px; }
+  .steps li { display: flex; gap: 10px; background: var(--bg); padding: 8px 12px; border-radius: 6px; font-size: 14px; align-items: baseline; }
+  .steps .act { font-weight: 700; min-width: 112px; color: var(--blue); }
+  .steps .arg { color: var(--ink); word-break: break-all; }
+
+  .runbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 2px solid var(--ink); border-radius: 8px; padding: 14px 16px; margin-top: 22px; }
+  .switch { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .switch input { position: absolute; opacity: 0; }
+  .track { width: 52px; height: 28px; background: var(--line); border-radius: 99px; position: relative; transition: background .15s; flex-shrink: 0; }
+  .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: transform .15s; }
+  .switch input:checked + .track { background: var(--blue); }
+  .switch input:checked + .track::after { transform: translateX(24px); }
+  .switch input:focus-visible + .track { outline: 3px solid var(--sun); outline-offset: 2px; }
+  .switch small { display: block; color: var(--muted); font-size: 12px; line-height: 1.2; }
+  .runbar .spacer { flex: 1; }
+
+  .terminal { background: var(--ink); color: #D6E0F5; border-radius: 6px; padding: 14px 16px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; line-height: 1.65; max-height: 240px; overflow: auto; white-space: pre-wrap; }
+  .terminal .bad { color: #FF8A8E; }
+  .result { background: var(--bg); border-radius: 6px; padding: 12px 14px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; white-space: pre-wrap; max-height: 260px; overflow: auto; }
+  .shot { width: 100%; border: 2px solid var(--line); border-radius: 6px; display: block; }
+  .note { background: #FFF6D6; border-left: 6px solid var(--sun); padding: 10px 12px; font-size: 14px; margin-top: 14px; }
+
+  /* modal */
+  .scrim { position: fixed; inset: 0; background: rgba(20,33,61,.6); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+  .modal { background: var(--surface); border-radius: 10px; width: 100%; max-width: 560px; padding: 28px; max-height: 92vh; overflow: auto; }
+  .modal h2 { font-size: 28px; margin-bottom: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 18px; }
+  .chip { border: 2px solid var(--line); background: var(--surface); padding: 5px 12px; border-radius: 99px; font-size: 13px; cursor: pointer; font-weight: 500; }
+  .chip:hover { border-color: var(--blue); background: #EEF1FF; }
+  .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 980px) {
+    #auth { grid-template-columns: 1fr; } .auth-brand { padding: 32px; gap: 28px; }
+    #app { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; flex-direction: row; align-items: center; flex-wrap: wrap; padding: 16px 20px; gap: 16px; }
+    nav { display: none; } .who { margin: 0 0 0 auto; border: 0; padding: 0; display: flex; align-items: center; gap: 12px; } .who small { display: none; } .who button { margin: 0; width: auto; }
+    main { padding: 24px 18px 48px; }
+    .stats { grid-template-columns: repeat(2, 1fr); } .layout { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<section id="auth" class="hidden">
+  <div class="auth-brand">
+    <div class="logo"><i></i> Plainbot</div>
+    <div>
+      <h1>Tell the browser what to do.</h1>
+      <p>Describe a task in everyday English. Plainbot turns it into steps and runs it in a real browser you can watch or hide.</p>
+    </div>
+    <div class="sample">
+      <b>You write:</b> Open Hacker News and copy the titles of the top stories.<br>
+      <b>Plainbot runs:</b> open page, wait for list, read titles, take a screenshot.
+    </div>
+  </div>
+  <div class="auth-form">
+    <div class="auth-card">
+      <div class="tabs" role="tablist">
+        <button id="tab-login" class="on" type="button">Log in</button>
+        <button id="tab-signup" type="button">Sign up</button>
+      </div>
+      <h2 id="auth-title">Welcome back</h2>
+      <p class="sub" id="auth-sub">Log in to see your jobs.</p>
+      <div id="auth-error" class="error hidden" role="alert"></div>
+      <div id="auth-fields">
+        <label class="field hidden" id="name-field"><span>Your name</span><input id="f-name" autocomplete="name"></label>
+        <label class="field"><span>Email</span><input id="f-email" type="email" autocomplete="email"></label>
+        <label class="field"><span>Password</span><input id="f-pass" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+        <button id="auth-submit" class="btn primary" type="button">Log in</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="app" class="hidden">
+  <aside>
+    <div class="logo"><i></i> Plainbot</div>
+    <nav><a href="#">Dashboard</a></nav>
+    <div class="who">
+      <strong id="who-name"></strong>
+      <small id="who-email"></small>
+      <button id="logout" class="btn small" type="button">Log out</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div>
+        <h2>Your jobs</h2>
+        <p>Write what you want automated, then run it.</p>
+      </div>
+      <button id="new-job" class="btn primary" type="button">New job</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat blue"><b id="s-total">0</b><span>Total jobs</span></div>
+      <div class="stat amber"><b id="s-running">0</b><span>Running now</span></div>
+      <div class="stat green"><b id="s-done">0</b><span>Completed</span></div>
+      <div class="stat red"><b id="s-failed">0</b><span>Failed</span></div>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h3>All jobs</h3>
+        <div id="job-list"></div>
+      </div>
+      <div class="panel" id="detail"></div>
+    </div>
+  </main>
+</section>
+
+<!-- ============ MODAL ============ -->
+<div id="modal" class="scrim hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <h2 id="m-title">New job</h2>
+    <div id="m-error" class="error hidden" role="alert"></div>
+    <label class="field"><span>Job name</span><input id="m-name" maxlength="80" placeholder="Hacker News top stories"></label>
+    <label class="field"><span>What should the browser do?</span>
+      <textarea id="m-prompt" placeholder="Go to news.ycombinator.com, read the titles of the top stories, and take a screenshot."></textarea>
+    </label>
+    <div class="chips" id="chips"></div>
+    <div class="actions">
+      <button id="m-cancel" class="btn" type="button">Cancel</button>
+      <button id="m-create" class="btn primary" type="button">Create job</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+let token = localStorage.getItem('plainbot_token');
+let user = null, jobs = [], selectedId = null, selected = null, poller = null, mode = 'login';
+let headlessPref = true, shotUrl = null;
+
+async function api(path, { method = 'GET', body } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const res = await fetch('/api' + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && token) { logout(); throw new Error(data.detail || 'Session expired'); }
+  if (!res.ok) {
+    const d = data.detail;
+    throw new Error(typeof d === 'string' ? d : Array.isArray(d) ? 'Please check the highlighted fields and try again.' : 'Something went wrong');
+  }
+  return data;
+}
+
+/* ---------- auth ---------- */
+function setMode(m) {
+  mode = m;
+  const signup = m === 'signup';
+  $('tab-login').classList.toggle('on', !signup);
+  $('tab-signup').classList.toggle('on', signup);
+  $('name-field').classList.toggle('hidden', !signup);
+  $('auth-title').textContent = signup ? 'Create your account' : 'Welcome back';
+  $('auth-sub').textContent = signup ? 'It takes less than a minute.' : 'Log in to see your jobs.';
+  $('auth-submit').textContent = signup ? 'Create account' : 'Log in';
+  $('f-pass').autocomplete = signup ? 'new-password' : 'current-password';
+  $('auth-error').classList.add('hidden');
+}
+$('tab-login').onclick = () => setMode('login');
+$('tab-signup').onclick = () => setMode('signup');
+
+async function submitAuth() {
+  const err = $('auth-error'); err.classList.add('hidden');
+  const email = $('f-email').value.trim(), password = $('f-pass').value, name = $('f-name').value.trim();
+  if (!email || !password || (mode === 'signup' && !name)) { err.textContent = 'Fill in every field to continue.'; err.classList.remove('hidden'); return; }
+  $('auth-submit').disabled = true;
+  try {
+    const data = await api(mode === 'signup' ? '/signup' : '/login', { method: 'POST', body: mode === 'signup' ? { name, email, password } : { email, password } });
+    token = data.token; localStorage.setItem('plainbot_token', token); user = data.user;
+    showApp();
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
+  $('auth-submit').disabled = false;
+}
+$('auth-submit').onclick = submitAuth;
+['f-name', 'f-email', 'f-pass'].forEach((id) => $(id).addEventListener('keydown', (e) => e.key === 'Enter' && submitAuth()));
+
+function logout() {
+  token = null; user = null; localStorage.removeItem('plainbot_token');
+  clearInterval(poller); selectedId = null; selected = null;
+  $('app').classList.add('hidden'); $('auth').classList.remove('hidden');
+}
+$('logout').onclick = logout;
+
+/* ---------- app ---------- */
+async function showApp() {
+  $('auth').classList.add('hidden'); $('app').classList.remove('hidden');
+  $('who-name').textContent = user.name; $('who-email').textContent = user.email;
+  await loadJobs();
+  if (jobs.length && !selectedId) selectJob(jobs[0].id); else renderDetail();
+}
+
+async function loadJobs() {
+  jobs = await api('/jobs');
+  $('s-total').textContent = jobs.length;
+  $('s-running').textContent = jobs.filter((j) => j.status === 'running').length;
+  $('s-done').textContent = jobs.filter((j) => j.status === 'completed').length;
+  $('s-failed').textContent = jobs.filter((j) => j.status === 'failed').length;
+  const list = $('job-list');
+  if (!jobs.length) {
+    list.innerHTML = '<div class="empty"><h3>No jobs yet</h3><p>Create your first job and describe what you want automated.</p></div>';
+    return;
+  }
+  list.innerHTML = jobs.map((j) => `
+    <button class="job ${j.id === selectedId ? 'sel' : ''}" data-id="${j.id}">
+      <b>${esc(j.title)}</b>
+      <span class="badge ${j.status}">${j.status}</span><small>${new Date(j.created_at).toLocaleString()}</small>
+    </button>`).join('');
+  list.querySelectorAll('.job').forEach((b) => (b.onclick = () => selectJob(Number(b.dataset.id))));
+}
+
+async function selectJob(id) {
+  selectedId = id;
+  await refreshSelected();
+  await loadJobs();
+}
+
+async function refreshSelected() {
+  if (!selectedId) { selected = null; renderDetail(); return; }
+  try { selected = await api('/jobs/' + selectedId); } catch (e) { selected = null; selectedId = null; }
+  if (selected && selected.has_screenshot) await loadShot(); else shotUrl = null;
+  headlessPref = selected ? selected.headless : headlessPref;
+  renderDetail();
+  clearInterval(poller);
+  if (selected && selected.status === 'running') poller = setInterval(tick, 1200);
+}
+
+async function tick() {
+  if (!selectedId) return;
+  try {
+    const fresh = await api('/jobs/' + selectedId);
+    const wasRunning = selected && selected.status === 'running';
+    selected = fresh;
+    if (fresh.status !== 'running') { clearInterval(poller); if (fresh.has_screenshot) await loadShot(); await loadJobs(); renderDetail(); return; }
+    patchLive();
+    if (wasRunning) loadJobs();
+  } catch (e) { clearInterval(poller); }
+}
+
+async function loadShot() {
+  try {
+    const res = await fetch(`/api/jobs/${selectedId}/screenshot`, { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) { shotUrl = null; return; }
+    if (shotUrl) URL.revokeObjectURL(shotUrl);
+    shotUrl = URL.createObjectURL(await res.blob());
+  } catch (_) { shotUrl = null; }
+}
+
+function stepArg(s) {
+  const parts = [];
+  if (s.url) parts.push(s.url);
+  if (s.selector) parts.push(s.selector);
+  if (s.value !== undefined) parts.push('"' + s.value + '"');
+  if (s.key) parts.push(s.key);
+  if (s.ms) parts.push(s.ms + ' ms');
+  if (s.y) parts.push(s.y + ' px');
+  if (s.as) parts.push('save as ' + s.as);
+  return parts.join('  ');
+}
+
+function logHtml(logs) {
+  return esc(logs || 'Waiting for output...').split('\n').map((l) => (l.startsWith('FAILED') || l.includes('crashed') || l.includes('not found') ? `<span class="bad">${l}</span>` : l)).join('\n');
+}
+
+function renderDetail() {
+  const box = $('detail');
+  if (!selected) {
+    box.innerHTML = '<div class="empty"><h3>Pick a job</h3><p>Select a job on the left, or create a new one to get started.</p></div>';
+    return;
+  }
+  const j = selected, running = j.status === 'running';
+  const steps = (j.plan?.steps || []).map((s) => `<li><span class="act">${esc(s.action)}</span><span class="arg">${esc(stepArg(s))}</span></li>`).join('');
+  box.innerHTML = `
+    <div class="detail-head">
+      <h3>${esc(j.title)}</h3>
+      <span class="badge ${j.status}" id="d-badge">${j.status}</span>
+    </div>
+    <div class="prompt">${esc(j.prompt)}</div>
+    ${j.plan_source === 'demo' ? '<div class="note">No Gemini key found, so this job uses a sample plan. Add GEMINI_API_KEY to your .env file to turn your own words into steps.</div>' : ''}
+    <span class="label">Steps Gemini planned</span>
+    <ul class="steps">${steps}</ul>
+
+    <div class="runbar">
+      <label class="switch">
+        <input type="checkbox" id="d-headless" ${headlessPref ? 'checked' : ''} ${running ? 'disabled' : ''}>
+        <span class="track"></span>
+        <span><b id="d-hl-label">${headlessPref ? 'Headless on' : 'Headless off'}</b>
+          <small id="d-hl-hint">${headlessPref ? 'Runs in the background, no window' : 'A browser window opens so you can watch'}</small></span>
+      </label>
+      <span class="spacer"></span>
+      <button class="btn danger" id="d-delete" ${running ? 'disabled' : ''}>Delete</button>
+      ${running ? '<button class="btn" id="d-stop">Stop job</button>' : `<button class="btn primary" id="d-run">${j.status === 'ready' ? 'Start job' : 'Run again'}</button>`}
+    </div>
+
+    <span class="label">Live log</span>
+    <div class="terminal" id="d-log">${logHtml(j.logs)}</div>
+    ${j.result && Object.keys(j.result).length ? `<span class="label">Extracted data</span><div class="result">${esc(JSON.stringify(j.result, null, 2))}</div>` : ''}
+    ${shotUrl ? `<span class="label">Final screenshot</span><img class="shot" src="${shotUrl}" alt="Screenshot from the last run">` : ''}
+  `;
+  const t = $('d-headless');
+  t.onchange = () => {
+    headlessPref = t.checked;
+    $('d-hl-label').textContent = headlessPref ? 'Headless on' : 'Headless off';
+    $('d-hl-hint').textContent = headlessPref ? 'Runs in the background, no window' : 'A browser window opens so you can watch';
+  };
+  if ($('d-run')) $('d-run').onclick = startJob;
+  if ($('d-stop')) $('d-stop').onclick = stopJob;
+  $('d-delete').onclick = deleteJob;
+  const term = $('d-log'); term.scrollTop = term.scrollHeight;
+}
+
+function patchLive() {
+  const term = $('d-log');
+  if (!term) return;
+  const stick = term.scrollTop + term.clientHeight >= term.scrollHeight - 30;
+  term.innerHTML = logHtml(selected.logs);
+  if (stick) term.scrollTop = term.scrollHeight;
+}
+
+async function startJob() {
+  $('d-run').disabled = true;
+  try {
+    await api(`/jobs/${selectedId}/run`, { method: 'POST', body: { headless: headlessPref } });
+    shotUrl = null;
+    await refreshSelected(); await loadJobs();
+  } catch (e) { alert(e.message); $('d-run').disabled = false; }
+}
+async function stopJob() {
+  try { await api(`/jobs/${selectedId}/stop`, { method: 'POST' }); } catch (e) { alert(e.message); }
+}
+async function deleteJob() {
+  if (!confirm('Delete this job and its logs?')) return;
+  try {
+    await api('/jobs/' + selectedId, { method: 'DELETE' });
+    selectedId = null; selected = null; shotUrl = null;
+    await loadJobs();
+    if (jobs.length) selectJob(jobs[0].id); else renderDetail();
+  } catch (e) { alert(e.message); }
+}
+
+/* ---------- new job modal ---------- */
+const EXAMPLES = [
+  ['Top Hacker News stories', 'Go to news.ycombinator.com, read the titles of the top stories, and take a screenshot.'],
+  ['Wikipedia lookup', 'Open wikipedia.org, search for "Playwright software", open the first result and read the first paragraph.'],
+  ['Page title check', 'Open example.com, save the page title and the main heading, then take a screenshot.'],
+];
+$('chips').innerHTML = EXAMPLES.map((e, i) => `<button class="chip" type="button" data-i="${i}">${esc(e[0])}</button>`).join('');
+$('chips').querySelectorAll('.chip').forEach((c) => (c.onclick = () => { const e = EXAMPLES[c.dataset.i]; $('m-name').value = e[0]; $('m-prompt').value = e[1]; }));
+
+$('new-job').onclick = () => { $('m-name').value = ''; $('m-prompt').value = ''; $('m-error').classList.add('hidden'); $('modal').classList.remove('hidden'); $('m-name').focus(); };
+$('m-cancel').onclick = () => $('modal').classList.add('hidden');
+$('modal').addEventListener('click', (e) => { if (e.target === $('modal')) $('modal').classList.add('hidden'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('modal').classList.add('hidden'); });
+
+$('m-create').onclick = async () => {
+  const title = $('m-name').value.trim(), prompt = $('m-prompt').value.trim(), err = $('m-error');
+  err.classList.add('hidden');
+  if (!title || prompt.length < 5) { err.textContent = 'Add a job name and describe the task in at least a few words.'; err.classList.remove('hidden'); return; }
+  const btn = $('m-create'); btn.disabled = true; btn.textContent = 'Planning steps...';
+  try {
+    const job = await api('/jobs', { method: 'POST', body: { title, prompt } });
+    $('modal').classList.add('hidden');
+    selectedId = job.id; headlessPref = true;
+    await refreshSelected(); await loadJobs();
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
+  btn.disabled = false; btn.textContent = 'Create job';
+};
+
+/* ---------- boot ---------- */
+(async function init() {
+  setMode('login');
+  if (token) { try { user = await api('/me'); return showApp(); } catch (_) {} }
+  $('auth').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
