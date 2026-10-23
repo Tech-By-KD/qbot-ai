@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plainbot</title>
+<title>Qbot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -155,14 +155,14 @@
 <!-- ============ AUTH ============ -->
 <section id="auth" class="hidden">
   <div class="auth-brand">
-    <div class="logo"><i></i> Plainbot</div>
+    <div class="logo"><i></i> Qbot</div>
     <div>
       <h1>Tell the browser what to do.</h1>
-      <p>Describe a task in everyday English. Plainbot turns it into steps and runs it in a real browser you can watch or hide.</p>
+      <p>Describe a task in everyday English. Qbot turns it into steps and runs it in a real browser you can watch or hide.</p>
     </div>
     <div class="sample">
       <b>You write:</b> Open Hacker News and copy the titles of the top stories.<br>
-      <b>Plainbot runs:</b> open page, wait for list, read titles, take a screenshot.
+      <b>Qbot runs:</b> open page, wait for list, read titles, take a screenshot.
     </div>
   </div>
   <div class="auth-form">
@@ -187,7 +187,7 @@
 <!-- ============ APP ============ -->
 <section id="app" class="hidden">
   <aside>
-    <div class="logo"><i></i> Plainbot</div>
+    <div class="logo"><i></i> Qbot</div>
     <nav><a href="#">Dashboard</a></nav>
     <div class="who">
       <strong id="who-name"></strong>
@@ -243,7 +243,7 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-let token = localStorage.getItem('plainbot_token');
+let token = localStorage.getItem('Qbot_token');
 let user = null, jobs = [], selectedId = null, selected = null, poller = null, mode = 'login';
 let headlessPref = true, shotUrl = null;
 
@@ -283,7 +283,7 @@ async function submitAuth() {
   $('auth-submit').disabled = true;
   try {
     const data = await api(mode === 'signup' ? '/signup' : '/login', { method: 'POST', body: mode === 'signup' ? { name, email, password } : { email, password } });
-    token = data.token; localStorage.setItem('plainbot_token', token); user = data.user;
+    token = data.token; localStorage.setItem('Qbot_token', token); user = data.user;
     showApp();
   } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
   $('auth-submit').disabled = false;
@@ -292,7 +292,7 @@ $('auth-submit').onclick = submitAuth;
 ['f-name', 'f-email', 'f-pass'].forEach((id) => $(id).addEventListener('keydown', (e) => e.key === 'Enter' && submitAuth()));
 
 function logout() {
-  token = null; user = null; localStorage.removeItem('plainbot_token');
+  token = null; user = null; localStorage.removeItem('Qbot_token');
   clearInterval(poller); selectedId = null; selected = null;
   $('app').classList.add('hidden'); $('auth').classList.remove('hidden');
 }
@@ -393,7 +393,7 @@ function renderDetail() {
     </div>
     <div class="prompt">${esc(j.prompt)}</div>
     ${j.plan_source === 'demo' ? '<div class="note">No Gemini key found, so this job uses a sample plan. Add GEMINI_API_KEY to your .env file to turn your own words into steps.</div>' : ''}
-    <span class="label">Steps Gemini planned</span>
+    <span class="label">Steps planned</span>
     <ul class="steps">${steps}</ul>
 
     <div class="runbar">

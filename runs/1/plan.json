@@ -1,0 +1,1 @@
+{"name": "Login to eventsmonial", "steps": [{"action": "goto", "url": "https://eventsmonial.com/"}, {"action": "waitForSelector", "selector": "text=Login"}, {"action": "click", "selector": "text=Login"}, {"action": "screenshot"}]}

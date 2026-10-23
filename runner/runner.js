@@ -16,7 +16,19 @@ const ACTIONS = {
     if (!/^https?:\/\//i.test(s.url || '')) throw new Error('goto needs a full http(s) url');
     await page.goto(s.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
   },
-  async click(page, s) { await page.locator(s.selector).first().click({ timeout: STEP_TIMEOUT }); },
+  async click(page, s) {
+    // try exact selector first, then fallback to partial text match
+    const selectors = [s.selector];
+    const m = s.selector.match(/^text=(.+)$/i);
+    if (m) {
+      selectors.push(`text=${m[1].toLowerCase()}`, `:text-is("${m[1]}")`, `a:has-text("${m[1]}")`, `button:has-text("${m[1]}")`);
+    }
+    let last;
+    for (const sel of selectors) {
+      try { await page.locator(sel).first().click({ timeout: 5000 }); return; } catch (e) { last = e; }
+    }
+    throw last;
+  },
   async fill(page, s) { await page.locator(s.selector).first().fill(String(s.value ?? ''), { timeout: STEP_TIMEOUT }); },
   async press(page, s) { await page.keyboard.press(s.key || 'Enter'); },
   async wait(page, s) { await page.waitForTimeout(Math.min(Number(s.ms) || 1000, 15000)); },
@@ -31,6 +43,12 @@ const ACTIONS = {
     await loc.first().waitFor({ timeout: STEP_TIMEOUT });
     const texts = (await loc.allInnerTexts()).map((t) => t.trim()).filter(Boolean).slice(0, 25);
     ctx.results[s.as || 'result'] = texts.length === 1 ? texts[0] : texts;
+  },
+  async verify(page, s, ctx) {
+    const actual = page.url();
+    const ok = actual === s.url || actual.startsWith(s.url);
+    ctx.results[s.as || 'verify'] = ok ? `PASS: ${actual}` : `FAIL: expected ${s.url}, got ${actual}`;
+    if (!ok) throw new Error(`URL mismatch: expected ${s.url}, got ${actual}`);
   },
 };
 
