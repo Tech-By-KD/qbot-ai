@@ -3,3 +3,4 @@ __pycache__/
 backend/.venv/
 runner/node_modules/
 *.db
+runs/

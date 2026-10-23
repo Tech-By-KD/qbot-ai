@@ -1,1 +1,0 @@
-{"name": "LoginSignUpVerification", "steps": [{"action": "goto", "url": "https://eventsmonial.com/"}, {"action": "click", "selector": "text=Login / Sign up"}, {"action": "wait", "ms": 15000}, {"action": "verify", "url": "https://eventsmonial.com/sign-in/planner", "as": "url_verified"}, {"action": "screenshot"}]}
